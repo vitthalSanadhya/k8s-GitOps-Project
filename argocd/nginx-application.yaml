@@ -1,0 +1,48 @@
+###############################################################
+# argocd/nginx-application.yaml
+# ArgoCD Application — syncs NGINX manifests from Git
+# Apply with: kubectl apply -f argocd/nginx-application.yaml
+###############################################################
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nginx
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app: nginx
+    managed-by: argocd
+spec:
+  project: apps-project
+
+  source:
+    # Must match sourceRepos in project.yaml
+    repoURL: https://github.com/vitthalSanadhya/k8s-GitOps-Project.git
+    targetRevision: main
+    path: manifests
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas

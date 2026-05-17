@@ -1,0 +1,24 @@
+name: ArgoCD Sync Check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'manifests/**'
+      - 'argocd/**'
+
+permissions:
+  contents: read
+
+jobs:
+  notify-sync:
+    name: Notify ArgoCD Sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log sync reminder
+        run: |
+          echo "ArgoCD will auto-sync manifests/ changes to the cluster within a few minutes."
+          echo "Check status: kubectl get applications -n argocd"

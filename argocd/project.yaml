@@ -1,0 +1,40 @@
+###############################################################
+# argocd/project.yaml
+# ArgoCD AppProject — scopes repos, destinations, and resource types
+###############################################################
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: apps-project
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: AppS EKS project
+
+  # Must match repoURL in nginx-application.yaml
+  sourceRepos:
+    - https://github.com/vitthalSanadhya/k8s-GitOps-Project.git
+
+  destinations:
+    - namespace: default
+      server: https://kubernetes.default.svc
+
+  # NGINX stack is namespace-scoped only
+  clusterResourceWhitelist: []
+
+  namespaceResourceWhitelist:
+    - group: ""
+      kind: ConfigMap
+    - group: ""
+      kind: Service
+    - group: apps
+      kind: Deployment
+    - group: networking.k8s.io
+      kind: Ingress
+
+  roles:
+    - name: read-only
+      description: Read-only access to all apps in this project
+      policies:
+        - p, proj:apps-project:read-only, applications, get, apps-project/*, allow
